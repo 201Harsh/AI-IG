@@ -9,6 +9,8 @@ import {
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
+import Axios from "../Config/Axios";
+import { Bounce, toast, ToastContainer } from "react-toastify";
 
 const Home = () => {
   const [prompt, setPrompt] = useState("");
@@ -50,10 +52,10 @@ const Home = () => {
         const url = window.URL.createObjectURL(new Blob([blob]));
         const link = document.createElement("a");
         link.href = url;
-        link.download = `ai-art-${promptText.substring(
+        link.download = `Endpix AI-${promptText.substring(
           0,
-          20
-        )}-${Date.now()}.jpg`;
+          50
+        )}- By Harsh.jpg`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -65,7 +67,8 @@ const Home = () => {
   };
 
   // Function to add an image to history
-  const addToHistory = (imageUrl, promptText, styleType) => {
+const addToHistory = (imageUrl, promptText, styleType) => {
+  try {
     const newHistoryItem = {
       id: Date.now(),
       imageUrl,
@@ -73,8 +76,76 @@ const Home = () => {
       style: styleType,
       timestamp: new Date().toISOString(),
     };
-    setHistory((prev) => [newHistoryItem, ...prev].slice(0, 50)); // Keep only last 50 items
+
+    setHistory((prev) => {
+      // Keep only the last 20 items to prevent quota issues
+      const newHistory = [newHistoryItem, ...prev].slice(0,2);
+      
+      // Compress data before saving
+      const compressedHistory = newHistory.map(item => ({
+        ...item,
+        // Optional: Use thumbnails for history items instead of full URLs
+        imageUrl: item.imageUrl.includes('data:image') ? 
+          compressImageUrl(item.imageUrl) : 
+          item.imageUrl
+      }));
+
+      try {
+        localStorage.setItem("aiImageHistory", JSON.stringify(compressedHistory));
+      } catch (storageError) {
+        console.warn("Failed to save history:", storageError);
+        // Fallback: Keep in memory only
+        return newHistory;
+      }
+      
+      return newHistory;
+    });
+  } catch (error) {
+    console.error("Error adding to history:", error);
+  }
+};
+
+// Optional image URL compressor for data URLs
+const compressImageUrl = (dataUrl) => {
+  if (!dataUrl.startsWith('data:image')) return dataUrl;
+  
+  try {
+    const img = new Image();
+    img.src = dataUrl;
+    const canvas = document.createElement('canvas');
+    canvas.width = 200; // Thumbnail width
+    canvas.height = 200 * (img.height / img.width);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.7); // Convert to JPEG with 70% quality
+  } catch {
+    return dataUrl; // Fallback to original if compression fails
+  }
+};
+
+// In your useEffect for saving history
+useEffect(() => {
+  const saveHistory = () => {
+    try {
+      if (history.length > 0) {
+        const compressedHistory = history.map(item => ({
+          ...item,
+          imageUrl: item.imageUrl.includes('data:image') ? 
+            compressImageUrl(item.imageUrl) : 
+            item.imageUrl
+        }));
+        localStorage.setItem("aiImageHistory", JSON.stringify(compressedHistory));
+      }
+    } catch (error) {
+      console.warn("Failed to save history to localStorage:", error);
+      // Implement fallback strategy here if needed
+    }
   };
+
+  // Debounce the save operation
+  const debounceTimer = setTimeout(saveHistory, 500);
+  return () => clearTimeout(debounceTimer);
+}, [history]);
 
   // Function to remove an item from history
   const removeFromHistory = (id) => {
@@ -82,53 +153,103 @@ const Home = () => {
   };
 
   // Mock generation process
-  const generateImage = () => {
-    if (!prompt.trim()) return;
+  const generateImage = async () => {
+  if (!prompt.trim()) {
+    toast.error("Please enter a prompt", {
+      position: "top-right",
+      autoClose: 5000,
+      theme: "dark",
+      transition: Bounce,
+    });
+    return;
+  }
 
-    setIsGenerating(true);
-    setProgress(0);
-    setGeneratedImage(null);
+  setIsGenerating(true);
+  setProgress(0);
+  setGeneratedImage(null);
 
-    // Simulate API call with progress
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const newProgress = prev + Math.random() * 10;
-        if (newProgress >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsGenerating(false);
-            // Use placeholder images for demo
-            const demoImages = [
-              "https://images.unsplash.com/photo-1722971380810-a4f29b2efc36?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-              "https://images.unsplash.com/photo-1746513420182-56a5a1f50034?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxNHx8fGVufDB8fHx8fA%3D%3D",
-              "https://images.unsplash.com/photo-1746728843342-25f976c53b2f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxN3x8fGVufDB8fHx8fA%3D%3D",
-              "https://images.unsplash.com/photo-1746648177616-eed4cc1a1213?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyN3x8fGVufDB8fHx8fA%3D%3D",
-              "https://images.unsplash.com/photo-1746793329190-e2c6bea16388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzOXx8fGVufDB8fHx8fA%3D%3D",
-              "https://plus.unsplash.com/premium_photo-1725985758251-b49c6b581d17?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-              "https://plus.unsplash.com/premium_photo-1711051513016-72baa1035293?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8c2hvZXN8ZW58MHx8MHx8fDA%3D",
-              "https://plus.unsplash.com/premium_photo-1665413642308-c5c1ed052d12?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHNob2VzfGVufDB8fDB8fHww",
-              "https://plus.unsplash.com/premium_photo-1702226631942-921d35d4183a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aGVlbHN8ZW58MHx8MHx8fDA%3D",
-              "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHx0b3BpYy1mZWVkfDI0fGlVSXNuVnRqQjBZfHxlbnwwfHx8fHw%3D",
-            ];
-            const newImage =
-              demoImages[Math.floor(Math.random() * demoImages.length)];
-            setGeneratedImage(newImage);
-            addToHistory(newImage, prompt, style);
-          }, 500);
-          return 100;
-        }
-        return newProgress;
+  try {
+    const response = await Axios.post(
+      "/ai/imageGen",
+      {
+        prompt,
+        style,
+      },
+      {
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const uploadProgress = Math.round(
+              (progressEvent.loaded * 50) / progressEvent.total
+            );
+            setProgress(uploadProgress);
+          }
+        },
+        onDownloadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const downloadProgress =
+              50 +
+              Math.round((progressEvent.loaded * 50) / progressEvent.total);
+            setProgress(downloadProgress);
+          }
+        },
+      }
+    );
+
+    const newImage = response.data.image;
+    if (!newImage) throw new Error("No image URL returned");
+
+    setProgress(100);
+    setGeneratedImage(newImage);
+    addToHistory(newImage, prompt, style);
+  
+
+  } catch (error) {
+    console.error("Generation error:", error);
+    
+    // Handle different error formats
+    if (error.response?.data?.errors) {
+      // Handle array of errors
+      error.response.data.errors.forEach((err) => {
+        toast.error(`${err.msg} at ${err.path}`, {
+          position: "top-right",
+          autoClose: 5000,
+          theme: "dark",
+          transition: Bounce,
+        });
       });
-    }, 300);
-  };
+    } else if (error.response?.data?.message) {
+      // Handle single error message
+      toast.error(error.response.data.message, {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+    } else {
+      // Generic error
+      toast.error("Failed to generate image. Please try again.", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+    }
+  } finally {
+    setIsGenerating(false);
+  }
+};
 
   // Sample prompts for quick generation
   const samplePrompts = [
-    "Majestic lion in golden savanna",
     "Cyberpunk city at night with neon lights",
     "Fantasy castle floating in the clouds",
     "Portrait of a steampunk inventor",
-    "Surreal landscape with giant mushrooms",
+    "Cute cat wearing a wizard hat",
+    "Futuristic city skyline at sunset",
+    "A Girl love a Boy in a Starry Night",
+    "A Beautiful Sunset on a Beach",
+    "Two People in Love",
+    "A Robot Playing Guitar",
   ];
 
   // Format timestamp for display
@@ -139,6 +260,20 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white p-4 md:p-8">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        transition={Bounce}
+      />
+
       {/* Header */}
       <header className="flex justify-between items-center mb-8">
         <div className="flex items-center space-x-2">
@@ -147,7 +282,7 @@ const Home = () => {
             EndPix AI
           </span>
         </div>
-        <nav className="flex space-x-4">
+        <nav className="md:flex hidden space-x-4">
           <button className="px-4 py-2 rounded-md hover:bg-gray-700/50 transition">
             Gallery
           </button>
@@ -478,7 +613,7 @@ const Home = () => {
                       <img
                         src={generatedImage}
                         alt="Generated AI art"
-                        className="w-full h-auto max-h-[400px] object-cover rounded-lg"
+                        className="w-full h-auto max-h-[500px] md:max-h-[400px] object-cover rounded-lg"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
                         <div className="text-white">

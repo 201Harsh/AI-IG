@@ -27,7 +27,6 @@ const Register = () => {
 
       if (response.status === 200) {
 
-        localStorage.setItem("name", username);
         localStorage.setItem("token", response.data.token);
 
         toast.success(response.data.message, {
