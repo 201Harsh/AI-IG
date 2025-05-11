@@ -84,7 +84,7 @@ const Start = () => {
           >
             <FiCpu className="w-8 h-8 text-blue-400" />
             <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-              Endgaming AI
+              EndPix AI
             </span>
           </motion.div>
 

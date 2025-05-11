@@ -144,7 +144,7 @@ const Home = () => {
         <div className="flex items-center space-x-2">
           <HiOutlineSparkles className="w-6 h-6 text-purple-400" />
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Endgaming AI
+            EndPix AI
           </span>
         </div>
         <nav className="flex space-x-4">
