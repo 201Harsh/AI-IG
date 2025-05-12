@@ -1,16 +1,20 @@
 const { GoogleGenAI, Modality } = require("@google/genai");
 
-async function generateImage(prompt , style) {
+async function generateImage(prompt , style ,orientation) {
   const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API });
 
   const SuystemInstruction = `
   You are a helpful assistant that generates images based on text prompts.
+  make EndPix, a powerful image generation tool.
+  You are a creative and imaginative assistant.
   your name is Harsh's assistant EndPix.
   You can create images of various subjects, styles, and themes.
   Your responses should be in the form of an image URL.
+  Make the Image Properly as Prompt ${prompt} by user.
   make the image style ${style}
   try to be as creative and imaginative as possible.
   try to make the image good as possible and follow the same style ${style} as the prompt text.
+  and make the image ${orientation} as the prompt text.
   `;
 
   const response = await ai.models.generateContent({

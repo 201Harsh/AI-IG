@@ -6,29 +6,43 @@ import {
   FiSettings,
   FiClock,
   FiTrash2,
+  FiSquare,
+  FiMonitor,
+  FiSmartphone,
 } from "react-icons/fi";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
 import Axios from "../Config/Axios";
 import { Bounce, toast, ToastContainer } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [prompt, setPrompt] = useState("");
-  const [style, setStyle] = useState("realistic");
+  const [style, setStyle] = useState("UltraReal");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
   const [progress, setProgress] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
+  const [orientation, setOrientation] = useState("portrait");
+
+  const Navigate = useNavigate();
 
   // Sample styles for the AI generator
   const styles = [
+    { value: "UltraReal", label: "UltraReal" },
     { value: "realistic", label: "Realistic" },
     { value: "fantasy", label: "Fantasy" },
     { value: "anime", label: "Anime" },
     { value: "cyberpunk", label: "Cyberpunk" },
-    { value: "watercolor", label: "Watercolor" },
+    { value: "abstract", label: "Abstract" },
+    { value: "cartoon", label: "Cartoon" },
+    { value: "oil_painting", label: "Oil Painting" },
+    { value: "sketch", label: "Sketch" },
+    { value: "pixel_art", label: "Pixel Art" },
+    { value: "3d_render", label: "3D Render" },
+    { value: "vintage", label: "Vintage" },
   ];
 
   // Load history from localStorage on component mount
@@ -67,85 +81,91 @@ const Home = () => {
   };
 
   // Function to add an image to history
-const addToHistory = (imageUrl, promptText, styleType) => {
-  try {
-    const newHistoryItem = {
-      id: Date.now(),
-      imageUrl,
-      prompt: promptText,
-      style: styleType,
-      timestamp: new Date().toISOString(),
-    };
-
-    setHistory((prev) => {
-      // Keep only the last 20 items to prevent quota issues
-      const newHistory = [newHistoryItem, ...prev].slice(0,2);
-      
-      // Compress data before saving
-      const compressedHistory = newHistory.map(item => ({
-        ...item,
-        // Optional: Use thumbnails for history items instead of full URLs
-        imageUrl: item.imageUrl.includes('data:image') ? 
-          compressImageUrl(item.imageUrl) : 
-          item.imageUrl
-      }));
-
-      try {
-        localStorage.setItem("aiImageHistory", JSON.stringify(compressedHistory));
-      } catch (storageError) {
-        console.warn("Failed to save history:", storageError);
-        // Fallback: Keep in memory only
-        return newHistory;
-      }
-      
-      return newHistory;
-    });
-  } catch (error) {
-    console.error("Error adding to history:", error);
-  }
-};
-
-// Optional image URL compressor for data URLs
-const compressImageUrl = (dataUrl) => {
-  if (!dataUrl.startsWith('data:image')) return dataUrl;
-  
-  try {
-    const img = new Image();
-    img.src = dataUrl;
-    const canvas = document.createElement('canvas');
-    canvas.width = 200; // Thumbnail width
-    canvas.height = 200 * (img.height / img.width);
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL('image/jpeg', 0.7); // Convert to JPEG with 70% quality
-  } catch {
-    return dataUrl; // Fallback to original if compression fails
-  }
-};
-
-// In your useEffect for saving history
-useEffect(() => {
-  const saveHistory = () => {
+  const addToHistory = (imageUrl, promptText, styleType) => {
     try {
-      if (history.length > 0) {
-        const compressedHistory = history.map(item => ({
+      const newHistoryItem = {
+        id: Date.now(),
+        imageUrl,
+        prompt: promptText,
+        style: styleType,
+        timestamp: new Date().toISOString(),
+      };
+
+      setHistory((prev) => {
+        // Keep only the last 20 items to prevent quota issues
+        const newHistory = [newHistoryItem, ...prev].slice(0, 2);
+
+        // Compress data before saving
+        const compressedHistory = newHistory.map((item) => ({
           ...item,
-          imageUrl: item.imageUrl.includes('data:image') ? 
-            compressImageUrl(item.imageUrl) : 
-            item.imageUrl
+          // Optional: Use thumbnails for history items instead of full URLs
+          imageUrl: item.imageUrl.includes("data:image")
+            ? compressImageUrl(item.imageUrl)
+            : item.imageUrl,
         }));
-        localStorage.setItem("aiImageHistory", JSON.stringify(compressedHistory));
-      }
+
+        try {
+          localStorage.setItem(
+            "aiImageHistory",
+            JSON.stringify(compressedHistory)
+          );
+        } catch (storageError) {
+          console.warn("Failed to save history:", storageError);
+          // Fallback: Keep in memory only
+          return newHistory;
+        }
+
+        return newHistory;
+      });
     } catch (error) {
-      console.warn("Failed to save history to localStorage:", error);
-      // Implement fallback strategy here if needed
+      console.error("Error adding to history:", error);
     }
   };
 
-  // Debounce the save operation
-  const debounceTimer = setTimeout(saveHistory, 500);
-  return () => clearTimeout(debounceTimer);
-}, [history]);
+  // Optional image URL compressor for data URLs
+  const compressImageUrl = (dataUrl) => {
+    if (!dataUrl.startsWith("data:image")) return dataUrl;
+
+    try {
+      const img = new Image();
+      img.src = dataUrl;
+      const canvas = document.createElement("canvas");
+      canvas.width = 200; // Thumbnail width
+      canvas.height = 200 * (img.height / img.width);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL("image/jpeg", 0.7); // Convert to JPEG with 70% quality
+    } catch {
+      return dataUrl; // Fallback to original if compression fails
+    }
+  };
+
+  // In your useEffect for saving history
+  useEffect(() => {
+    const saveHistory = () => {
+      try {
+        if (history.length > 0) {
+          const compressedHistory = history.map((item) => ({
+            ...item,
+            imageUrl: item.imageUrl.includes("data:image")
+              ? compressImageUrl(item.imageUrl)
+              : item.imageUrl,
+          }));
+          localStorage.setItem(
+            "aiImageHistory",
+            JSON.stringify(compressedHistory)
+          );
+        }
+      } catch (error) {
+        console.warn("Failed to save history to localStorage:", error);
+        // Implement fallback strategy here if needed
+      }
+    };
+
+    // Debounce the save operation
+    const debounceTimer = setTimeout(saveHistory, 500);
+    return () => clearTimeout(debounceTimer);
+  }, [history]);
 
   // Function to remove an item from history
   const removeFromHistory = (id) => {
@@ -154,98 +174,110 @@ useEffect(() => {
 
   // Mock generation process
   const generateImage = async () => {
-  if (!prompt.trim()) {
-    toast.error("Please enter a prompt", {
-      position: "top-right",
-      autoClose: 5000,
-      theme: "dark",
-      transition: Bounce,
-    });
-    return;
-  }
+    if (!prompt.trim()) {
+      toast.error("Please enter a prompt", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+      return;
+    }
 
-  setIsGenerating(true);
-  setProgress(0);
-  setGeneratedImage(null);
+    setIsGenerating(true);
+    setProgress(0);
+    setGeneratedImage(null);
 
-  try {
-    const response = await Axios.post(
-      "/ai/imageGen",
-      {
-        prompt,
-        style,
-      },
-      {
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const uploadProgress = Math.round(
-              (progressEvent.loaded * 50) / progressEvent.total
-            );
-            setProgress(uploadProgress);
-          }
+    // Start a continuous progress counter
+    const progressInterval = setInterval(() => {
+      setProgress((prev) => {
+        // Stop at 99% until we get the response
+        return prev < 99 ? prev + 1 : prev;
+      });
+    }, 100); // Adjust timing as needed (100ms = 10 steps per second)
+
+    try {
+      const response = await Axios.post(
+        "/ai/imageGen",
+        {
+          prompt,
+          style,
+          orientation,
         },
-        onDownloadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const downloadProgress =
-              50 +
-              Math.round((progressEvent.loaded * 50) / progressEvent.total);
-            setProgress(downloadProgress);
-          }
-        },
-      }
-    );
+        {
+          onUploadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const uploadProgress = Math.round(
+                (progressEvent.loaded * 0) / progressEvent.total
+              );
+              // Use whichever is higher - the interval progress or upload progress
+              setProgress((prev) => Math.max(prev, uploadProgress));
+            }
+          },
+          onDownloadProgress: (progressEvent) => {
+            if (progressEvent.total) {
+              const downloadProgress =
+                50 +
+                Math.round((progressEvent.loaded * 90) / progressEvent.total);
+              // Use whichever is higher - the interval progress or download progress
+              setProgress((prev) => Math.max(prev, downloadProgress));
+            }
+          },
+        }
+      );
 
-    const newImage = response.data.image;
-    if (!newImage) throw new Error("No image URL returned");
+      const newImage = response.data.image;
+      if (!newImage) throw new Error("No image URL returned");
 
-    setProgress(100);
-    setGeneratedImage(newImage);
-    addToHistory(newImage, prompt, style);
-  
+      // Clear the interval and set to 100% when done
+      clearInterval(progressInterval);
+      setProgress(100);
+      setGeneratedImage(newImage);
+      addToHistory(newImage, prompt, style);
+    } catch (error) {
+      console.error("Generation error:", error);
+      clearInterval(progressInterval);
 
-  } catch (error) {
-    console.error("Generation error:", error);
-    
-    // Handle different error formats
-    if (error.response?.data?.errors) {
-      // Handle array of errors
-      error.response.data.errors.forEach((err) => {
-        toast.error(`${err.msg} at ${err.path}`, {
+      // Handle different error formats
+      if (error.response?.data?.errors) {
+        // Handle array of errors
+        error.response.data.errors.forEach((err) => {
+          toast.error(`${err.msg} at ${err.path}`, {
+            position: "top-right",
+            autoClose: 5000,
+            theme: "dark",
+            transition: Bounce,
+          });
+        });
+      } else if (error.response?.data?.message) {
+        // Handle single error message
+        toast.error(error.response.data.message, {
           position: "top-right",
           autoClose: 5000,
           theme: "dark",
           transition: Bounce,
         });
-      });
-    } else if (error.response?.data?.message) {
-      // Handle single error message
-      toast.error(error.response.data.message, {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "dark",
-        transition: Bounce,
-      });
-    } else {
-      // Generic error
-      toast.error("Failed to generate image. Please try again.", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "dark",
-        transition: Bounce,
-      });
+      } else {
+        // Generic error
+        toast.error("Failed to generate this image.", {
+          position: "top-right",
+          autoClose: 5000,
+          theme: "dark",
+          transition: Bounce,
+        });
+      }
+    } finally {
+      setIsGenerating(false);
     }
-  } finally {
-    setIsGenerating(false);
-  }
-};
+  };
 
   // Sample prompts for quick generation
   const samplePrompts = [
-    "Cyberpunk city at night with neon lights",
-    "Fantasy castle floating in the clouds",
-    "Portrait of a steampunk inventor",
+    "Image of Lord Ram and Sita",
+    "A old village in between Mountains with a lake",
+    "A boy playing video games in his Gaming Room",
+    "A Beautiful Landscape with Lake",
     "Cute cat wearing a wizard hat",
-    "Futuristic city skyline at sunset",
     "A Girl love a Boy in a Starry Night",
     "A Beautiful Sunset on a Beach",
     "Two People in Love",
@@ -256,6 +288,27 @@ useEffect(() => {
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
+  };
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [currentFullscreenImage, setCurrentFullscreenImage] = useState(null);
+
+  // Add this function to handle fullscreen toggling
+  const toggleFullscreen = (imageUrl) => {
+    setCurrentFullscreenImage(imageUrl);
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const LogOutHandle = () => {
+    localStorage.clear();
+    toast.success("Logged Out Successfully", {
+      position: "top-right",
+      autoClose: 5000,
+      theme: "dark",
+    });
+    setTimeout(() => {
+      Navigate("/login");
+    }, 2000);
   };
 
   return (
@@ -275,12 +328,18 @@ useEffect(() => {
       />
 
       {/* Header */}
-      <header className="flex justify-between items-center mb-8">
+      <header className="flex relative justify-between items-center mb-8">
         <div className="flex items-center space-x-2">
           <HiOutlineSparkles className="w-6 h-6 text-purple-400" />
           <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
             EndPix AI
           </span>
+          <button
+            onClick={LogOutHandle}
+            className="absolute right-2 md:hidden cursor-pointer px-4 py-2 rounded-md bg-red-700 hover:bg-red-700 transition"
+          >
+            LogOut
+          </button>
         </div>
         <nav className="md:flex hidden space-x-4">
           <button className="px-4 py-2 rounded-md hover:bg-gray-700/50 transition">
@@ -294,8 +353,11 @@ useEffect(() => {
           >
             <FiClock className="mr-1" /> History
           </button>
-          <button className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-700 transition">
-            Upgrade
+          <button
+            onClick={LogOutHandle}
+            className="cursor-pointer px-4 py-2 rounded-md bg-red-700 hover:bg-red-700 transition"
+          >
+            LogOut
           </button>
         </nav>
       </header>
@@ -467,24 +529,68 @@ useEffect(() => {
                       >
                         <div>
                           <label className="block text-sm text-gray-400 mb-1">
-                            Creativity Level
+                            Image Orientation
                           </label>
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            className="w-full accent-blue-500"
-                          />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setOrientation("square")}
+                              className={`flex-1 py-2 px-3 rounded-lg text-sm flex items-center justify-center ${
+                                orientation === "square"
+                                  ? "bg-blue-600 text-white border-blue-500"
+                                  : "bg-gray-700/50 border border-gray-600 hover:bg-gray-700"
+                              }`}
+                            >
+                              <FiSquare className="mr-2" /> Square
+                            </button>
+                            <button
+                              onClick={() => setOrientation("landscape")}
+                              className={`flex-1 py-2 px-3 rounded-lg text-sm flex items-center justify-center ${
+                                orientation === "landscape"
+                                  ? "bg-blue-600 text-white border-blue-500"
+                                  : "bg-gray-700/50 border border-gray-600 hover:bg-gray-700"
+                              }`}
+                            >
+                              <FiMonitor className="mr-2" /> Landscape
+                            </button>
+                            <button
+                              onClick={() => setOrientation("portrait")}
+                              className={`flex-1 py-2 px-3 rounded-lg text-sm flex items-center justify-center ${
+                                orientation === "portrait"
+                                  ? "bg-blue-600 text-white border-blue-500"
+                                  : "bg-gray-700/50 border border-gray-600 hover:bg-gray-700"
+                              }`}
+                            >
+                              <FiSmartphone className="mr-2" /> Portrait
+                            </button>
+                          </div>
                         </div>
-                        <div>
-                          <label className="block text-sm text-gray-400 mb-1">
-                            Image Resolution
-                          </label>
-                          <select className="w-full bg-gray-700/50 border border-gray-600 rounded-lg p-2 text-sm">
-                            <option>1024x1024</option>
-                            <option>768x1024</option>
-                            <option>1024x768</option>
-                          </select>
+
+                        {/* Orientation Preview */}
+                        <div className="pt-2">
+                          <div className="relative">
+                            <div
+                              className={`mx-auto bg-gray-700/30 border border-gray-600 rounded-md overflow-hidden ${
+                                orientation === "square"
+                                  ? "aspect-square w-40"
+                                  : orientation === "landscape"
+                                  ? "aspect-video w-48"
+                                  : "aspect-[9/16] w-32"
+                              }`}
+                            >
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <FiImage className="text-gray-500" />
+                              </div>
+                              <div className="absolute bottom-2 left-2 right-2 text-center">
+                                <p className="text-xs text-gray-400 truncate">
+                                  {orientation === "square" && "1:1 (Square)"}
+                                  {orientation === "landscape" &&
+                                    "16:9 (Landscape)"}
+                                  {orientation === "portrait" &&
+                                    "9:16 (Portrait)"}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -566,7 +672,14 @@ useEffect(() => {
                 <div className="p-4 border-b border-gray-700 flex justify-between items-center">
                   <h2 className="font-medium">Generated Image</h2>
                   <div className="flex space-x-2">
-                    <button className="p-2 hover:bg-gray-700 rounded-lg">
+                    <button
+                      className={`p-2 rounded-lg ${
+                        !generatedImage
+                          ? "text-gray-500 cursor-not-allowed"
+                          : "hover:bg-gray-700"
+                      }`}
+                      disabled={!generatedImage}
+                    >
                       <FiShare2 />
                     </button>
                     <button
@@ -588,43 +701,248 @@ useEffect(() => {
                 <div className="h-full min-h-[500px] flex items-center justify-center p-4">
                   {isGenerating ? (
                     <div className="text-center">
-                      <div className="w-64 h-64 mx-auto bg-gray-700/50 rounded-lg flex items-center justify-center mb-4">
-                        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                      <motion.div
+                        className="relative w-64 h-64 mx-auto"
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        {/* Glowing outer ring */}
+                        <motion.div
+                          className="absolute inset-0 rounded-full border-2 border-blue-400/20"
+                          animate={{
+                            boxShadow: [
+                              "0 0 0 0 rgba(96, 165, 250, 0.3)",
+                              "0 0 0 10px rgba(96, 165, 250, 0)",
+                              "0 0 0 20px rgba(96, 165, 250, 0)",
+                            ],
+                          }}
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
+                            ease: "easeOut",
+                          }}
+                        />
+
+                        {/* Animated gradient circle */}
+                        <svg className="w-full h-full" viewBox="0 0 100 100">
+                          <defs>
+                            <linearGradient
+                              id="progressGradient"
+                              x1="0%"
+                              y1="0%"
+                              x2="100%"
+                              y2="100%"
+                            >
+                              <stop offset="0%" stopColor="#3B82F6" />
+                              <stop offset="50%" stopColor="#6366F1" />
+                              <stop offset="100%" stopColor="#8B5CF6" />
+                            </linearGradient>
+                          </defs>
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="#1F2937"
+                            strokeWidth="6"
+                          />
+                          <motion.circle
+                            cx="50"
+                            cy="50"
+                            r="45"
+                            fill="none"
+                            stroke="url(#progressGradient)"
+                            strokeWidth="6"
+                            strokeLinecap="round"
+                            strokeDasharray="283"
+                            strokeDashoffset={283 - (283 * progress) / 100}
+                            transform="rotate(-90 50 50)"
+                            initial={{ strokeDashoffset: 283 }}
+                          />
+                        </svg>
+
+                        {/* Floating AI icon with pulse animation */}
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                          <motion.div
+                            className="relative"
+                            animate={{
+                              y: [0, -10, 0],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Infinity,
+                              ease: "easeInOut",
+                            }}
+                          >
+                            <motion.div
+                              className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg"
+                              animate={{
+                                rotate: [0, 5, -5, 0],
+                              }}
+                              transition={{
+                                duration: 4,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              }}
+                            >
+                              <HiOutlineSparkles className="w-10 h-10 text-white" />
+                            </motion.div>
+
+                            {/* Subtle floating dots */}
+                            {[...Array(8)].map((_, i) => (
+                              <motion.div
+                                key={i}
+                                className="absolute rounded-full bg-blue-400"
+                                style={{
+                                  width: 6,
+                                  height: 6,
+                                  left: `${
+                                    Math.cos((i * 45 * Math.PI) / 180) * 30 + 50
+                                  }%`,
+                                  top: `${
+                                    Math.sin((i * 45 * Math.PI) / 180) * 30 + 50
+                                  }%`,
+                                }}
+                                animate={{
+                                  scale: [0.8, 1.2, 0.8],
+                                  opacity: [0.6, 1, 0.6],
+                                }}
+                                transition={{
+                                  duration: 2,
+                                  repeat: Infinity,
+                                  delay: i * 0.1,
+                                }}
+                              />
+                            ))}
+                          </motion.div>
+
+                          {/* Animated progress text */}
+                          <motion.p
+                            className="text-gray-300 mt-6 text-lg font-medium"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                          >
+                            Creating magic...
+                          </motion.p>
+
+                          {/* Progress percentage with count-up animation */}
+                          <motion.p
+                            className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 text-2xl font-bold mt-2"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                          >
+                            {Math.round(progress)}%
+                          </motion.p>
+                        </div>
+                      </motion.div>
+
+                      {/* Subtle animated dots below */}
+                      <div className="flex justify-center mt-8 space-x-2">
+                        {[...Array(3)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="w-2 h-2 bg-blue-400 rounded-full"
+                            animate={{
+                              y: [0, -5, 0],
+                              opacity: [0.6, 1, 0.6],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.2,
+                            }}
+                          />
+                        ))}
                       </div>
-                      <p className="text-gray-400">
-                        AI is creating your masterpiece...
-                      </p>
-                      <div className="w-full bg-gray-700 rounded-full h-2.5 mt-4">
-                        <div
-                          className="bg-blue-600 h-2.5 rounded-full"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
-                      <p className="text-sm text-gray-500 mt-2">
-                        {progress}% complete
-                      </p>
+
+                      <motion.p
+                        className="text-xs text-gray-400 mt-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5 }}
+                      >
+                        Crafting your masterpiece with AI magic
+                      </motion.p>
                     </div>
                   ) : generatedImage ? (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="relative group w-full"
-                    >
-                      <img
-                        src={generatedImage}
-                        alt="Generated AI art"
-                        className="w-full h-auto max-h-[500px] md:max-h-[400px] object-cover rounded-lg"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
-                        <div className="text-white">
-                          <p className="font-medium">Prompt:</p>
-                          <p className="text-sm opacity-90">{prompt}</p>
-                          <p className="text-xs mt-1 opacity-70">
-                            Style: {style}
-                          </p>
+                    <>
+                      {isFullscreen && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center p-4"
+                          onClick={() => setIsFullscreen(false)}
+                        >
+                          <div className="relative max-w-full max-h-full">
+                            <button
+                              className="absolute top-4 right-4 p-2 bg-gray-800 rounded-full hover:bg-gray-700 z-10"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsFullscreen(false);
+                              }}
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+
+                            <motion.img
+                              src={generatedImage}
+                              alt="Fullscreen preview"
+                              className="max-w-full max-h-screen object-contain"
+                              initial={{ scale: 0.9 }}
+                              animate={{ scale: 1 }}
+                              transition={{ duration: 0.2 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setIsFullscreen(false);
+                              }}
+                            />
+
+                            <div className="absolute bottom-4 left-0 right-0 text-center text-white bg-black bg-opacity-50 p-2">
+                              <p className="text-sm">{prompt}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="relative group w-full cursor-zoom-in"
+                        onClick={() => setIsFullscreen(true)}
+                      >
+                        <img
+                          src={generatedImage}
+                          alt="Generated AI art"
+                          className="w-full h-auto max-h-[500px] md:max-h-[400px] object-cover rounded-lg"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                          <div className="text-white">
+                            <p className="font-medium">Prompt:</p>
+                            <p className="text-sm opacity-90">{prompt}</p>
+                            <p className="text-xs mt-1 opacity-70">
+                              Style: {style}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </>
                   ) : (
                     <div className="text-center p-8">
                       <FiImage className="w-16 h-16 text-gray-600 mx-auto mb-4" />
@@ -694,8 +1012,14 @@ useEffect(() => {
       {/* Footer */}
       <footer className="mt-12 pt-6 border-t border-gray-800 text-center text-gray-400">
         <p>
-          © {new Date().getFullYear()} Endgaming AI Image Generator. All rights
-          reserved.
+          © {new Date().getFullYear()} Endpix AI Image Generator. All rights
+          reserved | Powered by{" "}
+          <a
+            className="text-blue-500 font-bold"
+            href="https://emoaichatbot.onrender.com/"
+          >
+            Endgaming AI
+          </a>
         </p>
       </footer>
     </div>

@@ -8,11 +8,14 @@ import {
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { HiOutlineSparkles } from "react-icons/hi2";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Bounce, toast, ToastContainer } from "react-toastify";
 
 const Start = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
+
+  const Navigate = useNavigate();
 
   useEffect(() => {
     const handleResize = () => {
@@ -46,6 +49,19 @@ const Start = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        transition={Bounce}
+      />
       {/* Animated background elements */}
       <div className="fixed inset-0 overflow-hidden opacity-20">
         {[...Array(10)].map((_, i) => (
@@ -201,6 +217,7 @@ const Start = () => {
                       </label>
                       <input
                         type="text"
+                        required
                         placeholder="Describe the image you want to generate..."
                         className="w-full bg-gray-700 rounded-md px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -224,27 +241,22 @@ const Start = () => {
                       whileTap={{ scale: 0.98 }}
                       className="w-full py-3 cursor-pointer bg-gradient-to-r from-blue-500 to-purple-600 rounded-md font-medium flex items-center justify-center"
                       onClick={() => {
-                        // This would be your actual API call in production
-                        // For demo purposes, we'll use Unsplash as a placeholder
-                        const demoImages = [
-                          "https://images.unsplash.com/photo-1722971380810-a4f29b2efc36?q=80&w=1472&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                          "https://images.unsplash.com/photo-1746513420182-56a5a1f50034?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxNHx8fGVufDB8fHx8fA%3D%3D",
-                          "https://images.unsplash.com/photo-1746728843342-25f976c53b2f?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwxN3x8fGVufDB8fHx8fA%3D%3D",
-                          "https://images.unsplash.com/photo-1746648177616-eed4cc1a1213?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwyN3x8fGVufDB8fHx8fA%3D%3D",
-                          "https://images.unsplash.com/photo-1746793329190-e2c6bea16388?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzOXx8fGVufDB8fHx8fA%3D%3D",
-                          "https://plus.unsplash.com/premium_photo-1725985758251-b49c6b581d17?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-                          "https://plus.unsplash.com/premium_photo-1711051513016-72baa1035293?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8c2hvZXN8ZW58MHx8MHx8fDA%3D",
-                          "https://plus.unsplash.com/premium_photo-1665413642308-c5c1ed052d12?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fHNob2VzfGVufDB8fDB8fHww",
-                          "https://plus.unsplash.com/premium_photo-1702226631942-921d35d4183a?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8aGVlbHN8ZW58MHx8MHx8fDA%3D",
-                          "https://images.unsplash.com/photo-1614850715649-1d0106293bd1?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHx0b3BpYy1mZWVkfDI0fGlVSXNuVnRqQjBZfHxlbnwwfHx8fHw%3D",
-                        ];
-                        const randomImage =
-                          demoImages[
-                            Math.floor(Math.random() * demoImages.length)
-                          ];
 
-                        // Set the generated image in state
-                        setGeneratedImage(randomImage);
+                        toast.error("Login to generate image", {
+                          position: "top-right",
+                          autoClose: 5000,
+                          hideProgressBar: false,
+                          closeOnClick: false,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          theme: "dark",
+                          transition: Bounce,
+                        });
+
+                        setTimeout(() => {
+                          Navigate("/register");
+                        }, 1500);
                       }}
                     >
                       Generate Image
@@ -252,7 +264,7 @@ const Start = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center bg-gray-900 rounded-lg min-h-[300px] max-h-[400px] overflow-hidden">
+                <div className="flex items-center justify-center bg-gray-900 rounded-lg min-h-[300px] max-h-[350px] overflow-hidden">
                   {generatedImage ? (
                     <motion.img
                       src={generatedImage}
@@ -341,13 +353,16 @@ const Start = () => {
         </section>
 
         {/* Footer */}
-        <footer className="mt-24 pt-8 border-t border-gray-800 text-center text-gray-400">
+        <footer className="mt-12 pt-6 border-t border-gray-800 text-center text-gray-400">
           <p>
-            © {new Date().getFullYear()} Endgaming AI Image Generator. All
-            rights reserved.
-          </p>
-          <p className="mt-2 text-sm">
-            Powered by cutting-edge artificial intelligence technology.
+            © {new Date().getFullYear()} Endpix AI Image Generator. All rights
+            reserved | Powered by{" "}
+            <a
+              className="text-blue-500 font-bold"
+              href="https://emoaichatbot.onrender.com/"
+            >
+              Endgaming AI
+            </a>
           </p>
         </footer>
       </div>
