@@ -1,6 +1,6 @@
-import React from 'react';
-import { FaSpinner, FaCircleNotch, FaCog, FaCompass } from 'react-icons/fa';
-import styled, { keyframes } from 'styled-components';
+import React from "react";
+import { FaSpinner, FaCircleNotch, FaCog, FaCompass } from "react-icons/fa";
+import styled, { keyframes } from "styled-components";
 
 // Animations
 const spin = keyframes`
@@ -87,7 +87,7 @@ const Dot = styled.div`
   border-radius: 50%;
   background-color: #64ffda;
   animation: ${float} 1.5s ease-in-out infinite;
-  animation-delay: ${props => props.delay || '0s'};
+  animation-delay: ${(props) => props.$delay || "0s"};
 `;
 
 const LoadingAnimation = () => {
@@ -98,14 +98,14 @@ const LoadingAnimation = () => {
         <MiddleSpinner />
         <InnerSpinner />
       </SpinnerContainer>
-      
+
       <LoadingText>Validating your credentials</LoadingText>
-      
+
       <FloatingDots>
-        <Dot delay="0s" />
-        <Dot delay="0.2s" />
-        <Dot delay="0.4s" />
-        <Dot delay="0.6s" />
+        <Dot $delay="0s" />
+        <Dot $delay="0.2s" />
+        <Dot $delay="0.4s" />
+        <Dot $delay="0.6s" />
       </FloatingDots>
     </FullPageLoader>
   );

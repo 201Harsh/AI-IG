@@ -53,11 +53,6 @@ const Home = () => {
     }
   }, []);
 
-  // Save history to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem("aiImageHistory", JSON.stringify(history));
-  }, [history]);
-
   // Function to handle image download
   const downloadImage = (imageUrl, promptText) => {
     fetch(imageUrl)
@@ -80,7 +75,7 @@ const Home = () => {
       });
   };
 
-  // Function to add an image to history
+  // Function to add an image to history (in memory only)
   const addToHistory = (imageUrl, promptText, styleType) => {
     try {
       const newHistoryItem = {
@@ -92,29 +87,8 @@ const Home = () => {
       };
 
       setHistory((prev) => {
-        // Keep only the last 20 items to prevent quota issues
-        const newHistory = [newHistoryItem, ...prev].slice(0, 2);
-
-        // Compress data before saving
-        const compressedHistory = newHistory.map((item) => ({
-          ...item,
-          // Optional: Use thumbnails for history items instead of full URLs
-          imageUrl: item.imageUrl.includes("data:image")
-            ? compressImageUrl(item.imageUrl)
-            : item.imageUrl,
-        }));
-
-        try {
-          localStorage.setItem(
-            "aiImageHistory",
-            JSON.stringify(compressedHistory)
-          );
-        } catch (storageError) {
-          console.warn("Failed to save history:", storageError);
-          // Fallback: Keep in memory only
-          return newHistory;
-        }
-
+        // Keep only the last 50 items
+        const newHistory = [newHistoryItem, ...prev].slice(0, 50);
         return newHistory;
       });
     } catch (error) {
@@ -134,38 +108,13 @@ const Home = () => {
       canvas.height = 200 * (img.height / img.width);
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      return canvas.toDataURL("image/jpeg", 0.7); // Convert to JPEG with 70% quality
+      return canvas.toDataURL("image/jpeg", 0.7);
     } catch {
-      return dataUrl; // Fallback to original if compression fails
+      return dataUrl;
     }
   };
 
-  // In your useEffect for saving history
-  useEffect(() => {
-    const saveHistory = () => {
-      try {
-        if (history.length > 0) {
-          const compressedHistory = history.map((item) => ({
-            ...item,
-            imageUrl: item.imageUrl.includes("data:image")
-              ? compressImageUrl(item.imageUrl)
-              : item.imageUrl,
-          }));
-          localStorage.setItem(
-            "aiImageHistory",
-            JSON.stringify(compressedHistory)
-          );
-        }
-      } catch (error) {
-        console.warn("Failed to save history to localStorage:", error);
-        // Implement fallback strategy here if needed
-      }
-    };
-
-    // Debounce the save operation
-    const debounceTimer = setTimeout(saveHistory, 500);
-    return () => clearTimeout(debounceTimer);
-  }, [history]);
+  // Remove useEffect that saves to localStorage
 
   // Function to remove an item from history
   const removeFromHistory = (id) => {
@@ -196,6 +145,8 @@ const Home = () => {
       });
     }, 100); // Adjust timing as needed (100ms = 10 steps per second)
 
+    const token = localStorage.getItem("token");
+
     try {
       const response = await Axios.post(
         "/ai/imageGen",
@@ -203,6 +154,12 @@ const Home = () => {
           prompt,
           style,
           orientation,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`, // ✅ Important
+          },
         },
         {
           onUploadProgress: (progressEvent) => {
@@ -226,6 +183,27 @@ const Home = () => {
         }
       );
 
+      localStorage.setItem("credits", response.data.creditLeft);
+
+      if (response.data.creditLeft === 7) {
+        toast.success("Go and Follow Me on Instagram...", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "dark",
+          transition: Bounce,
+        });
+        toast.success("Redirecting to Instagram...", {
+          position: "top-right",
+          autoClose: 4000,
+          theme: "dark",
+          transition: Bounce,
+        });
+
+        setTimeout(() => {
+          window.location.href = "https://www.instagram.com/201harshs/";
+        }, 5000);
+      }
+
       const newImage = response.data.image;
       if (!newImage) throw new Error("No image URL returned");
 
@@ -235,7 +213,7 @@ const Home = () => {
       setGeneratedImage(newImage);
       addToHistory(newImage, prompt, style);
     } catch (error) {
-      console.error("Generation error:", error);
+      console.log(error);
       clearInterval(progressInterval);
 
       // Handle different error formats
@@ -257,6 +235,13 @@ const Home = () => {
           theme: "dark",
           transition: Bounce,
         });
+      } else if (error.response?.data?.error) {
+        toast.error(error.response.data.error, {
+          position: "top-right",
+          autoClose: 5000,
+          theme: "dark",
+          transition: Bounce,
+        });
       } else {
         // Generic error
         toast.error("Failed to generate this image.", {
@@ -271,13 +256,35 @@ const Home = () => {
     }
   };
 
+  useEffect(() => {
+    const Credits = localStorage.getItem("credits");
+    if (Credits === 7) {
+      toast.success("Go and Follow Me on Instagram...", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+      toast.success("Redirecting to Instagram...", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+
+      setTimeout(() => {
+        window.location.href = "https://www.instagram.com/201harshs/";
+      }, 5000);
+    }
+  }, []);
+
   // Sample prompts for quick generation
   const samplePrompts = [
     "Image of Lord Ram and Sita",
+    "Image of Lord Shiva",
     "A old village in between Mountains with a lake",
-    "A boy playing video games in his Gaming Room",
+    "A Girl in a Flower Field",
     "A Beautiful Landscape with Lake",
-    "Cute cat wearing a wizard hat",
     "A Girl love a Boy in a Starry Night",
     "A Beautiful Sunset on a Beach",
     "Two People in Love",
@@ -966,7 +973,7 @@ const Home = () => {
                 Recent Creations
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {history.slice(0, 4).map((item) => (
+                {history.slice(0, 10).map((item) => (
                   <motion.div
                     key={item.id}
                     whileHover={{ y: -5 }}

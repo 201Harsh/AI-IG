@@ -1,7 +1,7 @@
 const { GoogleGenAI, Modality } = require("@google/genai");
 
 async function generateImage(prompt , style ,orientation) {
-  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API });
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_1 });
 
   const SuystemInstruction = `
   You are a helpful assistant that generates images based on text prompts.

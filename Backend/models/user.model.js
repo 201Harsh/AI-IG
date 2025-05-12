@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
   },
+  credit: {
+    type: Number,
+    default: 10,
+  },
 });
 
 UserSchema.methods.JWT_Generate = function () {
