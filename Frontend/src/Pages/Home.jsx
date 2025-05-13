@@ -454,7 +454,7 @@ const Home = () => {
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       className="w-full h-32 bg-gray-700/50 border border-gray-600 rounded-lg p-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                      placeholder="A beautiful sunset over mountains..."
+                      placeholder="Make Images With EndGaming AI"
                     />
                     <div className="absolute bottom-3 right-3 text-xs text-gray-500">
                       {prompt.length}/500
