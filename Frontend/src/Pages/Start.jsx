@@ -106,7 +106,7 @@ const Start = () => {
 
           <Link
             className="px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-medium shadow-lg"
-            to="/register"
+            to="/home"
           >
             Sign In
           </Link>
@@ -124,7 +124,10 @@ const Start = () => {
               AI Image Generator
             </span>
             <br />
-            Powered by Endgaming AI
+            Powered by{" "}
+            <span className="bg-clip-text text-transparent bg-gradient-to-l from-blue-300 to-pink-400">
+              Endgaming AI
+            </span>
           </motion.h1>
 
           <motion.p
@@ -142,7 +145,7 @@ const Start = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <Link to="/register">
+            <Link to="/home">
               <motion.button
                 whileHover={{
                   scale: 1.05,
@@ -241,7 +244,6 @@ const Start = () => {
                       whileTap={{ scale: 0.98 }}
                       className="w-full py-3 cursor-pointer bg-gradient-to-r from-blue-500 to-purple-600 rounded-md font-medium flex items-center justify-center"
                       onClick={() => {
-
                         toast.error("Login to generate image", {
                           position: "top-right",
                           autoClose: 5000,
@@ -255,7 +257,7 @@ const Start = () => {
                         });
 
                         setTimeout(() => {
-                          Navigate("/register");
+                          Navigate("/home");
                         }, 1500);
                       }}
                     >
@@ -337,7 +339,7 @@ const Start = () => {
               Join thousands of creators using our AI Image Generator to bring
               their ideas to life.
             </p>
-            <Link to="/register">
+            <Link to="/home">
               <motion.button
                 whileHover={{
                   scale: 1.05,

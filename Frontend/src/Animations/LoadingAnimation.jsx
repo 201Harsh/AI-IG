@@ -38,6 +38,7 @@ const FullPageLoader = styled.div`
 
 const LoadingText = styled.div`
   margin-top: 30px;
+  text-align: center;
   font-size: 1.2rem;
   letter-spacing: 2px;
   text-transform: uppercase;
@@ -99,7 +100,7 @@ const LoadingAnimation = () => {
         <InnerSpinner />
       </SpinnerContainer>
 
-      <LoadingText>Validating your credentials</LoadingText>
+      <LoadingText>Creating Connection With EndGaming AI</LoadingText>
 
       <FloatingDots>
         <Dot $delay="0s" />

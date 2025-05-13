@@ -71,7 +71,6 @@ const Home = () => {
         window.URL.revokeObjectURL(url);
       })
       .catch((error) => {
-        console.error("Error downloading image:", error);
       });
   };
 
@@ -92,7 +91,6 @@ const Home = () => {
         return newHistory;
       });
     } catch (error) {
-      console.error("Error adding to history:", error);
     }
   };
 
@@ -156,12 +154,6 @@ const Home = () => {
           orientation,
         },
         {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`, // ✅ Important
-          },
-        },
-        {
           onUploadProgress: (progressEvent) => {
             if (progressEvent.total) {
               const uploadProgress = Math.round(
@@ -183,27 +175,6 @@ const Home = () => {
         }
       );
 
-      localStorage.setItem("credits", response.data.creditLeft);
-
-      if (response.data.creditLeft === 7) {
-        toast.success("Go and Follow Me on Instagram...", {
-          position: "top-right",
-          autoClose: 4000,
-          theme: "dark",
-          transition: Bounce,
-        });
-        toast.success("Redirecting to Instagram...", {
-          position: "top-right",
-          autoClose: 4000,
-          theme: "dark",
-          transition: Bounce,
-        });
-
-        setTimeout(() => {
-          window.location.href = "https://www.instagram.com/201harshs/";
-        }, 5000);
-      }
-
       const newImage = response.data.image;
       if (!newImage) throw new Error("No image URL returned");
 
@@ -213,7 +184,6 @@ const Home = () => {
       setGeneratedImage(newImage);
       addToHistory(newImage, prompt, style);
     } catch (error) {
-      console.log(error);
       clearInterval(progressInterval);
 
       // Handle different error formats

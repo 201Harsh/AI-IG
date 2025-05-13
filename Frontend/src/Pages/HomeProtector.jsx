@@ -7,18 +7,11 @@ const HomeProtector = ({ children }) => {
   const navigate = useNavigate(); // lowercase "navigate"
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
 
-    if (!token) {
-      toast.error("Please log in to access this page.");
-      setTimeout(() => {
-        navigate("/");
-      }, 3000);
-    } else {
-      setLoading(false);
-    }
-  }, [navigate]);
+  setTimeout(() => {
+    setLoading(false);
+  }, 5000);
+
 
   if (loading) {
     return (
