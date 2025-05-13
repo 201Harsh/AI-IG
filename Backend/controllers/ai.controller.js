@@ -36,6 +36,6 @@ module.exports.imageGen = async (req, res) => {
     });
   } catch (error) {
     console.error("Error generating image:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Server Failed..." });
   }
 };

@@ -1,7 +1,7 @@
 const { GoogleGenAI, Modality } = require("@google/genai");
 
 async function generateImage(prompt , style ,orientation) {
-  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_1 });
+  const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API });
 
   const SuystemInstruction = `
   You are a helpful assistant that generates images based on text prompts.
@@ -11,6 +11,7 @@ async function generateImage(prompt , style ,orientation) {
   You can create images of various subjects, styles, and themes.
   Your responses should be in the form of an image URL.
   Make the Image Properly as Prompt ${prompt} by user.
+  Generate only high-quality images in resolution.
   make the image style ${style}
   try to be as creative and imaginative as possible.
   try to make the image good as possible and follow the same style ${style} as the prompt text.
