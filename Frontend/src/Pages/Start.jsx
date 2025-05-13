@@ -14,6 +14,7 @@ import { Bounce, toast, ToastContainer } from "react-toastify";
 const Start = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [generatedImage, setGeneratedImage] = useState(null);
+  const [IsLogin, setIsLogin] = useState(false);
 
   const Navigate = useNavigate();
 
@@ -46,6 +47,23 @@ const Start = () => {
       description: "Get high-resolution images ready for your projects",
     },
   ];
+
+  useEffect(() => {
+    localStorage.setItem("IsLogin", IsLogin);
+  }, [IsLogin]);
+  const TempLogin = () => {
+    toast.success("Login Successfull", {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "dark",
+    });
+    setIsLogin(true);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 text-white">
@@ -105,6 +123,7 @@ const Start = () => {
           </motion.div>
 
           <Link
+            onClick={TempLogin}
             className="px-4 py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-600 text-sm font-medium shadow-lg"
             to="/home"
           >
@@ -145,7 +164,7 @@ const Start = () => {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.6 }}
           >
-            <Link to="/home">
+            <Link to="/home" onClick={TempLogin}>
               <motion.button
                 whileHover={{
                   scale: 1.05,
@@ -255,7 +274,7 @@ const Start = () => {
                           theme: "dark",
                           transition: Bounce,
                         });
-
+                        TempLogin;
                         setTimeout(() => {
                           Navigate("/home");
                         }, 1500);
@@ -341,6 +360,7 @@ const Start = () => {
             </p>
             <Link to="/home">
               <motion.button
+                onClick={TempLogin}
                 whileHover={{
                   scale: 1.05,
                   boxShadow: "0 0 25px rgba(139, 92, 246, 0.5)",

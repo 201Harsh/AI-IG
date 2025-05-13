@@ -26,6 +26,11 @@ const Home = () => {
   const [history, setHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
   const [orientation, setOrientation] = useState("portrait");
+  const [credits, setCredits] = useState(() => {
+    // Initialize credits from localStorage or default to 2
+    const savedCredits = localStorage.getItem("credits");
+    return savedCredits ? parseInt(savedCredits) : 5;
+  });
 
   const Navigate = useNavigate();
 
@@ -53,6 +58,10 @@ const Home = () => {
     }
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("credits", credits.toString());
+  }, [credits]);
+
   // Function to handle image download
   const downloadImage = (imageUrl, promptText) => {
     fetch(imageUrl)
@@ -70,8 +79,7 @@ const Home = () => {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       })
-      .catch((error) => {
-      });
+      .catch((error) => {});
   };
 
   // Function to add an image to history (in memory only)
@@ -90,8 +98,7 @@ const Home = () => {
         const newHistory = [newHistoryItem, ...prev].slice(0, 50);
         return newHistory;
       });
-    } catch (error) {
-    }
+    } catch (error) {}
   };
 
   // Optional image URL compressor for data URLs
@@ -112,8 +119,6 @@ const Home = () => {
     }
   };
 
-  // Remove useEffect that saves to localStorage
-
   // Function to remove an item from history
   const removeFromHistory = (id) => {
     setHistory((prev) => prev.filter((item) => item.id !== id));
@@ -131,6 +136,29 @@ const Home = () => {
       return;
     }
 
+    if (credits <= 0) {
+      toast.error("You've reached your credit limit", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+      return;
+    }
+    if (credits === 5) {
+      toast.success("Enjoying So Help Me...", {
+        position: "top-right",
+        autoClose: 5000,
+        theme: "dark",
+        transition: Bounce,
+      });
+
+      setTimeout(() => {
+        window.location.href = "https://www.instagram.com/201harshs/";
+      }, 2000);
+      return;
+    }
+
     setIsGenerating(true);
     setProgress(0);
     setGeneratedImage(null);
@@ -142,8 +170,6 @@ const Home = () => {
         return prev < 99 ? prev + 1 : prev;
       });
     }, 100); // Adjust timing as needed (100ms = 10 steps per second)
-
-    const token = localStorage.getItem("token");
 
     try {
       const response = await Axios.post(
@@ -159,7 +185,6 @@ const Home = () => {
               const uploadProgress = Math.round(
                 (progressEvent.loaded * 0) / progressEvent.total
               );
-              // Use whichever is higher - the interval progress or upload progress
               setProgress((prev) => Math.max(prev, uploadProgress));
             }
           },
@@ -168,21 +193,39 @@ const Home = () => {
               const downloadProgress =
                 50 +
                 Math.round((progressEvent.loaded * 90) / progressEvent.total);
-              // Use whichever is higher - the interval progress or download progress
               setProgress((prev) => Math.max(prev, downloadProgress));
             }
           },
         }
       );
 
-      const newImage = response.data.image;
-      if (!newImage) throw new Error("No image URL returned");
+      if (response.status === 200) {
+        // Only decrement credits if the generation was successful
+        setCredits((prev) => {
+          const newCredits = prev - 1;
+          if (newCredits <= 0) {
+            toast.info("You've reached your credit limit", {
+              position: "top-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: false,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+              theme: "dark",
+              transition: Bounce,
+            });
+          }
+          return newCredits;
+        });
 
-      // Clear the interval and set to 100% when done
-      clearInterval(progressInterval);
-      setProgress(100);
-      setGeneratedImage(newImage);
-      addToHistory(newImage, prompt, style);
+        const newImage = response.data.image;
+        if (!newImage) throw new Error("No image URL returned");
+
+        setProgress(100);
+        setGeneratedImage(newImage);
+        addToHistory(newImage, prompt, style);
+      }
     } catch (error) {
       clearInterval(progressInterval);
 
@@ -226,28 +269,6 @@ const Home = () => {
     }
   };
 
-  useEffect(() => {
-    const Credits = localStorage.getItem("credits");
-    if (Credits === 7) {
-      toast.success("Go and Follow Me on Instagram...", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "dark",
-        transition: Bounce,
-      });
-      toast.success("Redirecting to Instagram...", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "dark",
-        transition: Bounce,
-      });
-
-      setTimeout(() => {
-        window.location.href = "https://www.instagram.com/201harshs/";
-      }, 5000);
-    }
-  }, []);
-
   // Sample prompts for quick generation
   const samplePrompts = [
     "Image of Lord Ram and Sita",
@@ -284,7 +305,7 @@ const Home = () => {
       theme: "dark",
     });
     setTimeout(() => {
-      Navigate("/login");
+      Navigate("/");
     }, 2000);
   };
 
@@ -576,17 +597,19 @@ const Home = () => {
 
                 {/* Generate Button */}
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: credits > 0 ? 1.02 : 1 }}
+                  whileTap={{ scale: credits > 0 ? 0.98 : 1 }}
                   onClick={generateImage}
-                  disabled={isGenerating || !prompt.trim()}
+                  disabled={isGenerating || !prompt.trim() || credits <= 0}
                   className={`w-full py-3 rounded-lg font-bold flex items-center justify-center ${
-                    isGenerating || !prompt.trim()
+                    isGenerating || !prompt.trim() || credits <= 0
                       ? "bg-gray-700 cursor-not-allowed"
                       : "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   }`}
                 >
-                  {isGenerating ? (
+                  {credits <= 0 ? (
+                    "No Credits Left"
+                  ) : isGenerating ? (
                     <span className="flex items-center">
                       <svg
                         className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"

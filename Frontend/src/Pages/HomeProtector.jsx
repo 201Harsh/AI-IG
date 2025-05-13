@@ -7,18 +7,22 @@ const HomeProtector = ({ children }) => {
   const navigate = useNavigate(); // lowercase "navigate"
   const [loading, setLoading] = useState(true);
 
+  const UserLogin = localStorage.getItem("IsLogin");
 
-  setTimeout(() => {
-    setLoading(false);
-  }, 5000);
-
+  useEffect(() => {
+    if (UserLogin) {
+      setTimeout(() => {
+        setLoading(false);
+      }, 3000);
+    }
+  }, []);
 
   if (loading) {
     return (
       <>
         <LoadingAnimation />
       </>
-    ); // Use the LoadingAnimation component
+    );
   }
 
   return <>{children}</>;
