@@ -10,6 +10,7 @@ import {
   FiMonitor,
   FiSmartphone,
 } from "react-icons/fi";
+import { MdOutlineCancel } from "react-icons/md";
 import { HiOutlineSparkles } from "react-icons/hi2";
 import { motion, AnimatePresence } from "framer-motion";
 import Axios from "../Config/Axios";
@@ -30,6 +31,13 @@ const Home = () => {
     // Initialize credits from localStorage or default to 2
     const savedCredits = localStorage.getItem("credits");
     return savedCredits ? parseInt(savedCredits) : 5;
+  });
+  const [Popup, setPopup] = useState(true);
+
+  const [showPopup, setShowPopup] = useState(() => {
+    // Check if the popup has been shown before using localStorage
+    const hasSeenPopup = localStorage.getItem("hasSeenInstagramPopup");
+    return !hasSeenPopup;
   });
 
   const Navigate = useNavigate();
@@ -143,19 +151,6 @@ const Home = () => {
         theme: "dark",
         transition: Bounce,
       });
-      return;
-    }
-    if (credits === 5) {
-      toast.success("Enjoying So Help Me...", {
-        position: "top-right",
-        autoClose: 5000,
-        theme: "dark",
-        transition: Bounce,
-      });
-
-      setTimeout(() => {
-        window.location.href = "https://www.instagram.com/201harshs/";
-      }, 2000);
       return;
     }
 
@@ -324,6 +319,72 @@ const Home = () => {
         theme="dark"
         transition={Bounce}
       />
+      {/* Instagram Follow Popup */}
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              className="bg-gray-800 border border-gray-700 rounded-xl max-w-md w-full p-6 relative"
+            >
+              <button
+                onClick={() => {
+                  setShowPopup(false);
+                  localStorage.setItem("hasSeenInstagramPopup", "true");
+                }}
+                className="cursor-pointer absolute top-4 right-4 text-purple-300 hover:text-purple-500"
+              >
+                <MdOutlineCancel className="w-10 h-10" />
+              </button>
+
+              <div className="text-center">
+                <HiOutlineSparkles className="w-12 h-12 text-purple-500 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-5">
+                  Support Developer{" "}
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-pink-500">
+                    Harsh
+                  </span>
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  Enjoying EndPix AI? Help support future development by
+                  following the developer on Instagram!
+                </p>
+
+                <a
+                  href="https://www.instagram.com/201harshs/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium py-3 px-6 rounded-lg"
+                  onClick={() => {
+                    setShowPopup(false);
+                    localStorage.setItem("hasSeenInstagramPopup", "true");
+                  }}
+                >
+                  Follow on Instagram
+                </a>
+
+                <button
+                  onClick={() => {
+                    setShowPopup(false);
+                    localStorage.setItem("hasSeenInstagramPopup", "true");
+                  }}
+                  className="block mt-10 cursor-pointer border-2 border-purple-400 p-4 rounded-lg text-gray-400 hover:text-white text-lg font-bold"
+                >
+                  <span className="bg-clip-text text-transparent bg-gradient-to-l from-blue-400 to-purple-500">
+                    Maybe later
+                  </span>
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <header className="flex relative justify-between items-center mb-8">
